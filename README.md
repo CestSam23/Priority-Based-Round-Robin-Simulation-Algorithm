@@ -11,5 +11,6 @@ struct Process{
   int cpuBurst;
   int tCompletition;
   int tWaiting;
+  int priority;
   char name[5]
 }

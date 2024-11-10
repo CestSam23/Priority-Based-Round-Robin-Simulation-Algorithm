@@ -8,6 +8,7 @@ struct Process{
 	int cpuBurst;
 	int  tCompletition;
 	int tWaiting;
+	int priority;
 	char name[5];
 };
 
@@ -88,7 +89,7 @@ void readFile(){
 
 		//Read all records from file (Until EOF)
 		while(!feof(fPtr)){
-			struct Process readedProcess = {0,0,0,0,""};
+			struct Process readedProcess = {0,0,0,0,0,""};
 			if((fread(&readedProcess,sizeof(struct Process),1,fPtr))!=0){
 				printf("%-6d%-16d%-16s%-6d%-6d\n",readedProcess.id,readedProcess.cpuBurst,readedProcess.name, readedProcess.tCompletition, readedProcess.tWaiting);
 			}
