@@ -6,6 +6,8 @@
 struct Process{
 	pid_t id;
 	int cpuBurst;
+	int  tCompletition;
+	int tWaiting;
 	char name[5];
 };
 
@@ -57,11 +59,17 @@ void createFile(struct ProcessParameter parameters){
 		//File created. We can start writing.
 		struct Process processData;
 		for(int i=0;i<parameters.numberOfProcesses;i++){
+			//The ID is given by i. From 0 to parameters.numberOfProcesses
 			processData.id = i+1;
+			//The cpuBurst is given by a random number between parameters.maximumBurst & parameters.minimumBurst
 			processData.cpuBurst = (rand()%parameters.maximumBurst) + parameters.minimumBurst;
 			for(int j=0;j<5;j++){
 				processData.name[j] = (char)(rand()%26) + 'a';
 			} 
+			//General information for the analysis module.
+			processData.tCompletition = 0;
+			processData.tWaiting = 0;
+			//Write the process to the file
 			fwrite(&processData,sizeof(struct Process),1,fPtr);
 		}
 
@@ -76,13 +84,13 @@ void readFile(){
 	if(fPtr==NULL){
 		printf("File Couldn't be opened\n");
 	} else {
-		printf("%-6s%-16s%-16s\n","Id","CPU Burst","Name");
+		printf("%-6s%-16s%-16s%-6s%-6s\n","Id","CPU Burst","Name","CompletitionTime","WaitingTime");
 
 		//Read all records from file (Until EOF)
 		while(!feof(fPtr)){
-			struct Process readedProcess = {0,0,""};
+			struct Process readedProcess = {0,0,0,0,""};
 			if((fread(&readedProcess,sizeof(struct Process),1,fPtr))!=0){
-				printf("%-6d%-16d%-16s\n",readedProcess.id,readedProcess.cpuBurst,readedProcess.name);
+				printf("%-6d%-16d%-16s%-6d%-6d\n",readedProcess.id,readedProcess.cpuBurst,readedProcess.name, readedProcess.tCompletition, readedProcess.tWaiting);
 			}
 		}
 		fclose(fPtr);

@@ -9,5 +9,7 @@ General Structures:
 struct Process{
   pid_t id;
   int cpuBurst;
+  int tCompletition;
+  int tWaiting;
   char name[5]
 }
