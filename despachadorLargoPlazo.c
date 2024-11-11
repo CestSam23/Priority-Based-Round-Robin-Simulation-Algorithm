@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
 
 struct Process{
@@ -12,6 +13,11 @@ struct Process{
 	int priority;
 	char name[5];
 };
+
+void finish(){
+	printf("Program Finished\n");
+	exit(1);
+}
 
 /*
 				Despachador de Largo Plazo
@@ -26,6 +32,7 @@ int main(){
 	FILE *fPtr;
 	int n, k;
 	fPtr = fopen("processRequest.dat","rb");
+	signal(SIGTERM,finish);
 	if(fPtr==NULL){
 		perror("Error opening file of data\n");
 	} else {
