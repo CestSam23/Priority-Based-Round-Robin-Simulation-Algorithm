@@ -58,18 +58,20 @@ void createFile(struct ProcessParameter parameters){
 		printf("File Couldn't be created\n");
 	} else {
 		//File created. We can start writing.
-		struct Process processData;
+		struct Process processData = {0,0,0,0,0,""};
 		for(int i=0;i<parameters.numberOfProcesses;i++){
 			//The ID is given by i. From 0 to parameters.numberOfProcesses
 			processData.id = i+1;
 			//The cpuBurst is given by a random number between parameters.maximumBurst & parameters.minimumBurst
 			processData.cpuBurst = (rand()%parameters.maximumBurst) + parameters.minimumBurst;
-			for(int j=0;j<5;j++){
+			for(int j=0;j<4;j++){
 				processData.name[j] = (char)(rand()%26) + 'a';
 			} 
+			processData.name[5] = '\0';
 			//General information for the analysis module.
 			processData.tCompletition = 0;
 			processData.tWaiting = 0;
+			processData.priority = 0;
 			//Write the process to the file
 			fwrite(&processData,sizeof(struct Process),1,fPtr);
 		}
