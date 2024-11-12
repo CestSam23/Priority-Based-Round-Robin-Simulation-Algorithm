@@ -11,14 +11,14 @@ En este archivo esta la definición de las funciones
 
 */
 
-struct Process{
+typedef struct Process{
 	pid_t id;
 	int cpuBurst;
 	int tCompletition;
 	int tWaiting;
 	int priority;
 	char name[5];
-};
+}process_t;
 
 typedef struct{
 	int prev;
@@ -30,8 +30,8 @@ typedef struct{
 
 int addProcess(struct Process process);
 int addProcesses(struct Process *process);
-struct Process deleteProcess();
-struct Process getProcess(int n);
+process_t deleteProcess();
+process_t getProcess(int n);
 int aumentarEspera(int s);
 int restarEjecucion(int s);
 void ordenarPorPrioridad();

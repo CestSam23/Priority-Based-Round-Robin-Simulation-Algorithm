@@ -8,6 +8,9 @@ Implementación de las funciones del archivo cabecera
 Parte del código. Recordemos que usaremos un MAX
 */
 
+static lista_t lista = {.prev = -1, .actual = -1, .next = -1, .size = 0};
+
+
 
 int addProcess(struct Process process){
 	return 1;
@@ -17,11 +20,11 @@ int addProcesses(struct Process *process){
 	return 1;
 }
 
-struct Process deleteProcess(){
+process_t deleteProcess(){
 	
 }
 
-struct Process getprocess(int n){
+process_t getprocess(int n){
 
 }
 
