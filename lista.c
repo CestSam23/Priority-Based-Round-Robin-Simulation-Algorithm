@@ -11,9 +11,24 @@ Parte del código. Recordemos que usaremos un MAX
 static lista_t lista = {.prev = -1, .actual = -1, .next = -1, .size = 0};
 
 
-
+/*
+Añade la estructura de un proceso individualmente, 
+actualiza los punteros, retorna 1 si se agregó correctamente, 
+0 en caso contrario
+*/
 int addProcess(struct Process process){
-	return 1;
+	if(lista.size>=MAX){
+		return 0; 
+	}
+	lista.procesos[lista.size]=process;
+	lista.size++;
+	lista.prev=lista.actual;
+	lista.actual=lista.size - 1;
+	if(lista.size<MAX){
+		lista.next=lista.size;
+	}else{
+		lista.next=-1;
+	}
 }
 
 /*
@@ -66,9 +81,15 @@ process_t deleteProcess(){
 	//Devolvemos la estructura original
 	return toReturn;
 }
-
+/*
+Función que obtiene la estructura del proceso dado su indice
+*/
 process_t getprocess(int n){
-
+	if(n>=0 && n<=lista.size){
+		return lista.procesos[n];
+	}
+	printf("No existe el proceso\n");
+	return (process_t){0}; 
 }
 
 
@@ -83,8 +104,23 @@ int aumentarEspera(int s){
 	}
 }
 
+/*
+Esta función resta el tiempo de ejecución al proceso actual,
+es decir al que está siendo despachado, si el cpuBurst restante es 
+menor o igual que cero no es necesario seguirle restando, por lo que
+lo eliminamos
+*/
 int restarEjecucion(int s){
+	if(isEmpty) return 0;
 
+	for(int i=0; i<lista.size; i++){
+		if(i==lista.actual){
+			if(lista.procesos[i].cpuBurst<=0) deleteProcess(lista.procesos[i]);
+			lista.procesos[i].cpuBurst-=s;
+			return 1;
+		} 
+	}
+	return 0;
 }
 
 void ordenarPorPrioridad(){
