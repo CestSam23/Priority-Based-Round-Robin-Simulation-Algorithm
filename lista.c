@@ -96,7 +96,8 @@ int size(){
 }
 
 int isEmpty(){
-
+	if(lista.size==0) return 1;
+	return 0;
 }
 
 const char *toString(){
