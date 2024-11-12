@@ -91,13 +91,18 @@ void ordenarPorPrioridad(){
 
 }
 
+/*
+Esta función devuelve el tamaño de la lista, cada que se agrega un proceso
+size aumenta, por lo que nos dice el tamaño de lista
+*/
 int size(){
 	return lista.size;
 }
 
+/*Esta función devuelve si la lista esta vacia.
+En cuyo caso devuelve 1, contrario 0.*/
 int isEmpty(){
-	if(lista.size==0) return 1;
-	return 0;
+	return lista.size == 0;
 }
 
 const char *toString(){
