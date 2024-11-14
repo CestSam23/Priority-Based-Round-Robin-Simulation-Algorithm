@@ -33,18 +33,17 @@ Deja apuntando en la posición incial del primer elemento agregado
 */
 int addProcesses(struct Process process[], int n){
 	int sizeOfArray = n;
-	printf("Size %d\n",sizeOfArray);
 	if(lista.size >= MAX || lista.size + sizeOfArray >= MAX){
 		return -1;
 	}
-
+	lista.procesos[lista.size] = process[0];
+	lista.size++;
 	next();
-
-
-	for(int i=0;i<sizeOfArray;i++){
+	for(int i=1;i<sizeOfArray;i++){
 		lista.procesos[lista.size] = process[i];
 		lista.size++;
 	}
+	
 	return sizeOfArray;
 }
 /*
@@ -65,8 +64,10 @@ process_t deleteProcess(){
 	//Hacemos corrimiento de lugares
 	for(int i=lista.actual;i<originalSize-1;i++){
 		lista.procesos[i] = lista.procesos[i+1];
-		lista.size--;
 	}
+	lista.size--;
+	prev();
+	next();
 	//Devolvemos la estructura original
 	return toReturn;
 }
@@ -107,16 +108,20 @@ menor o igual que cero no es necesario seguirle restando, por lo que
 lo eliminamos
 */
 int restarEjecucion(int s){
-	if(isEmpty) return 0;
+	if(isEmpty()) return 0;
 
-	for(int i=0; i<lista.size; i++){
-		if(i==lista.actual){
-			if(lista.procesos[i].cpuBurst<=0) deleteProcess(lista.procesos[i]);
-			lista.procesos[i].cpuBurst-=s;
-			return 1;
-		} 
+
+	if(lista.procesos[lista.actual].cpuBurst-s <= 0){
+		int time = lista.procesos[lista.actual].cpuBurst % s;
+		lista.procesos[lista.actual].cpuBurst = 0;
+		aumentarTerminacion(time);
+		deleteProcess();
+	} else {
+		lista.procesos[lista.actual].cpuBurst-=s;
+
 	}
-	return 0;
+
+	return 1;
 }
 /*Función que ordena los procesos mediante su cpu burstime restante, lo hace por medio del algoritmo de ordenación burbuja por su eficiencia en vectores*/
 void ordenarPorPrioridad(){
