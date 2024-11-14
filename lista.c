@@ -117,9 +117,25 @@ int restarEjecucion(int s){
 	}
 	return 0;
 }
-
+/*Función que ordena los procesos mediante su cpu burstime restante, lo hace por medio del algoritmo de ordenación burbuja por su eficiencia en vectores*/
 void ordenarPorPrioridad(){
+	/*Verifica y elimina los procesos que ya no necesitan ser ordenados*/
+	for(int k=0; k<lista.size; k++){
+		if(lista.procesos[k].cpuBurst<=0){
+			deleteProcess(lista.procesos[k]);
+			k--;
+		}
+	}
 
+	for(int i=0; i<lista.size-1;i++){
+		for(int j=0; j<lista.size-i-1;j++){
+			if(lista.procesos[j].cpuBurst> lista.procesos[i+1].cpuBurst){
+				process_t aux=lista.procesos[j];
+				lista.procesos[j]=lista.procesos[j+1];
+				lista.procesos[j+1]=aux;
+			}
+		}
+	}
 }
 
 /*
