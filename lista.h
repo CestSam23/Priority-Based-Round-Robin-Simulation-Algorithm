@@ -39,6 +39,10 @@ int size();
 int isEmpty();
 int next();
 int prev();
+process_t actual();
+int actualN();
+int isLast();
+
 const char *toString();
 
 #endif

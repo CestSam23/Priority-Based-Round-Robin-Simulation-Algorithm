@@ -133,6 +133,13 @@ const char *toString(){
 
 }
 
+
+/*
+Funciones para avanzar en la lista enlazada
+Funciona para casos esquina, supuestamente jaja
+Agregamos la funcion actual y actualN, que devuelve
+la estructura actual, y el entero actual
+*/
 int next(){
 	if(lista.size>0){
 		lista.prev = lista.actual;
@@ -159,4 +166,19 @@ int prev(){
 	}
 
 	return lista.actual;
+}
+
+process_t actual(){
+	return lista.procesos[lista.actual];
+}
+
+int actualN(){
+	return lista.actual;
+}
+
+/*
+Funcion que devuelve si el elemento actual es el elemento final
+*/
+int isLast(){
+	return lista.actual == lista.size;
 }
