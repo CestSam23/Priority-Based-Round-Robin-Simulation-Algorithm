@@ -31,8 +31,9 @@ Devuelve -1 si ocurrió un error
 Devuelve la cantidad de elementos copiados
 Deja apuntando en la posición incial del primer elemento agregado
 */
-int addProcesses(struct Process *process){
-	int sizeOfArray = sizeof(process)/sizeof(process[0]);
+int addProcesses(struct Process process[], int n){
+	int sizeOfArray = n;
+	printf("Size %d\n",sizeOfArray);
 	if(lista.size >= MAX || lista.size + sizeOfArray >= MAX){
 		return -1;
 	}
@@ -158,7 +159,7 @@ void toString(){
 		return;
 	}else{
 		printf("\tLIST: \n");
-		for(int i=0; i<=lista.size;i++){
+		for(int i=0; i<lista.size;i++){
 			process_t procesoAux=lista.procesos[i];
 			printf("Id: %d, Nombre: %s, CPU Burst: %d, TimeCompletition: %d, TimeWaiting: %d, Priority: %d\n", procesoAux.id, procesoAux.name, procesoAux.cpuBurst, procesoAux.tCompletition, procesoAux.tWaiting, procesoAux.priority);
 		}

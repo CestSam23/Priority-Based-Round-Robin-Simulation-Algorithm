@@ -29,7 +29,7 @@ typedef struct{
 }lista_t;
 
 int addProcess(struct Process process);
-int addProcesses(struct Process *process);
+int addProcesses(struct Process process[], int n);
 process_t deleteProcess();
 process_t getProcess(int n);
 int aumentarEspera(int s);
