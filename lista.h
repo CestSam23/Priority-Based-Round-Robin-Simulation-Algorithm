@@ -43,6 +43,6 @@ process_t actual();
 int actualN();
 int isLast();
 
-const char *toString();
+void toString();
 
 #endif

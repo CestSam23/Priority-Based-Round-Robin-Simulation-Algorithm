@@ -128,9 +128,18 @@ En cuyo caso devuelve 1, contrario 0.*/
 int isEmpty(){
 	return lista.size == 0;
 }
-
-const char *toString(){
-
+/*IMPRIME TODA LA LISTA*/
+void toString(){
+	if(isEmpty()){
+		printf("List Empty");
+		return;
+	}else{
+		printf("\tLIST: \n");
+		for(int i=0; i<=lista.size;i++){
+			process_t procesoAux=lista.procesos[i];
+			printf("Id: %d, Nombre: %s, CPU Burst: %d, TimeCompletition: %d, TimeWaiting: %d, Priority: %d\n", procesoAux.id, procesoAux.name, procesoAux.cpuBurst, procesoAux.tCompletition, procesoAux.tWaiting, procesoAux.priority);
+		}
+	}
 }
 
 
