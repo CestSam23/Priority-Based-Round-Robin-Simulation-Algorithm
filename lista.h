@@ -34,6 +34,7 @@ process_t deleteProcess();
 process_t getProcess(int n);
 int aumentarEspera(int s);
 int restarEjecucion(int s);
+int aumentarTerminacion(int s);
 void ordenarPorPrioridad();
 int size();
 int isEmpty();

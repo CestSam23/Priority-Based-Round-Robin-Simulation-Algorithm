@@ -90,6 +90,13 @@ int aumentarEspera(int s){
 		if(i!=lista.actual)
 			lista.procesos[i].tWaiting += s;
 	}
+
+	return 1;
+}
+
+int aumentarTerminacion(int s){
+	lista.procesos[lista.actual].tCompletition += s;
+	return 1;
 }
 
 /*
