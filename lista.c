@@ -22,13 +22,7 @@ int addProcess(struct Process process){
 	}
 	lista.procesos[lista.size]=process;
 	lista.size++;
-	lista.prev=lista.actual;
-	lista.actual=lista.size - 1;
-	if(lista.size<MAX){
-		lista.next=lista.size;
-	}else{
-		lista.next=-1;
-	}
+	next();
 }
 
 /*
@@ -43,13 +37,7 @@ int addProcesses(struct Process *process){
 		return -1;
 	}
 
-	lista.actual = lista.size;
-
-	if(lista.actual==0){
-		lista.prev=-1;
-	}
-
-	lista.next = lista.actual+1;
+	next();
 
 
 	for(int i=0;i<sizeOfArray;i++){
@@ -143,4 +131,32 @@ int isEmpty(){
 
 const char *toString(){
 
+}
+
+int next(){
+	if(lista.size>0){
+		lista.prev = lista.actual;
+		lista.actual = lista.next;
+		lista.next = (lista.next+1)% lista.size;
+	} else{
+		lista.prev = -1;
+		lista.actual = -1;
+		lista.next = -1;
+	}
+
+	return lista.actual;
+}
+
+int prev(){
+	if(lista.size > 0){
+		lista.next = lista.actual;
+		lista.actual = lista.prev;
+		lista.prev = (lista.prev-1+lista.size)%lista.size;
+	} else {
+		lista.prev = -1;
+		lista.actual = -1;
+		lista.next = -1;
+	}
+
+	return lista.actual;
 }

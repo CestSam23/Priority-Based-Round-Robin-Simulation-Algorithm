@@ -37,6 +37,8 @@ int restarEjecucion(int s);
 void ordenarPorPrioridad();
 int size();
 int isEmpty();
+int next();
+int prev();
 const char *toString();
 
 #endif
