@@ -35,6 +35,7 @@ int prev();
 process_t actual();
 int actualN();
 int isLast();
+void rewindList();
 
 void toString();
 

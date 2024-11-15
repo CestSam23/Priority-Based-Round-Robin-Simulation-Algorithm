@@ -39,21 +39,29 @@ int main(){
 	*/
 	
 	/*Por mientras, creamos una estructura de ejemplo*/
-	printf("Despachador\n");
-	process_t p1 = {1,43,0,0,0,"pro1\0"};
-	process_t p2 = {2,12,0,0,0,"pro2\0"};
+	process_t p1 = {1,23,0,0,0,"pro1\0"};
+	process_t p2 = {2,5,0,0,0,"pro2\0"};
 	process_t p3 = {3,6,0,0,0,"pro3\0"};
-	process_t p4 = {4,4,0,0,0,"pro4\0"};
-	process_t p5 = {5,7,0,0,0,"pro5\0"};
+	process_t p4 = {4,9,0,0,0,"pro4\0"};
+	process_t p5 = {5,2,0,0,0,"pro5\0"};
+	process_t p6 = {6,10,0,0,0,"pro6\0"};
+	process_t p7 = {7,35,0,0,0,"pro7\0"};
+	
 
-	process_t prs[5] = {p1,p2,p3,p4,p5};
-	addProcesses(prs,5);
-	toString();
-	printf("Procesos añadidos\nDespachadno\n");
+	process_t prs[7] = {p1,p2,p3,p4,p5,p6,p7};
+	addProcesses(prs,7);
 	//inicio de despachador
 	roundRobin();
+
+	printf("Round Robin Terminado. LISTA ACTUAL\n");
+	toString();
+
+	printf("INICIANDO PRIORIDADES\n\n");
 	ordenarPorPrioridad();
+	toString();
+	printf("INICIO\n\n");
 	priority();
+	printf("Finalizacion");
 
 	//Espera de otro lote de memoria
 }
@@ -64,24 +72,26 @@ void roundRobin(){
 	Recordemos que por documentacion addProcesses deja
 	apuntando actual al primer elemento agregado
 	*/
+	rewindList();
 	for(int i=0; i<size(); i++){
-		printf("Despachando proceso %d con rr\n",i);
+		printf("****Despachando Proceso %d con Round Robin****\n",i);
 		aumentarEspera(QUANTUM);
 		aumentarTerminacion(QUANTUM);
 		//Se terminó Proceso, enviar a modulo de estadistica
 		if(restarEjecucion(QUANTUM)==-1){
+			printf("El proceso %d ha sido eliminado\n",i);
 			sendToAnalytics(deleteProcess());
-			printf("Proceso %d eliminado con rr\n",i);
+			toString();
 			//No es necesario avanzar. La función delete process
 			//Recorre en automático
 		} else {
 			//Avanzamos a la siguiente estructura
 			//En ultimo elemento, regresamos al inicio
-			printf("Siguiente\n\n");
-
-			toString();
+			printf("ListaFinal\n");
 			next();
+			toString();
 		}
+		printf("***********************************\n");
 	}
 }
 
@@ -91,18 +101,21 @@ void priority(){
 	Solamente es despacharlos
 	
 	 */
-
-	for(int i=0;i<size();i++){
-		printf("Despachando Proceso %d con priority\n",i);
-		int remain = listaDeProcesos.procesos[listaDeProcesos.actual].cpuBurst;
+	rewindList();
+	int iterations = size();
+	for(int i=0;i<iterations;i++){
+		printf("**********Despachando Proceso %d con priority\n*************",i);
+		int remain = actual().cpuBurst;
+		printf("Despachando %d con %d\n\n",i,remain);
 		aumentarEspera(remain);
 		aumentarTerminacion(remain);
-
 		restarEjecucion(remain);
 
 		
 		printf("Proceso %d eliminado \n",i);
 		sendToAnalytics(deleteProcess());
+		toString();
+		
 	}
 }
 

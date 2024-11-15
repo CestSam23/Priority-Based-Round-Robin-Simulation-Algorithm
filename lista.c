@@ -66,8 +66,11 @@ process_t deleteProcess(){
 		lista.procesos[i] = lista.procesos[i+1];
 	}
 	lista.size--;
-	prev();
-	next();
+	if(lista.actual==lista.size-1){
+		printf("Ultimo elemento eliminado\n");
+		prev();
+		toString();
+	};
 	//Devolvemos la estructura original
 	return toReturn;
 }
@@ -155,6 +158,8 @@ void toString(){
 		printf("List Empty");
 		return;
 	}else{
+		printf("Actual: %d\n",lista.actual);
+		printf("Size: %d\n", lista.size);
 		printf("\tLIST: \n");
 		for(int i=0; i<lista.size;i++){
 			process_t procesoAux=lista.procesos[i];
@@ -173,6 +178,7 @@ la estructura actual, y el entero actual
 int next(){
 	if(lista.size>0){
 		lista.actual = (lista.actual+1)% lista.size;
+		printf("Actual %d\n",lista.actual);
 	} else{
 		lista.actual = -1;
 	}
@@ -203,4 +209,8 @@ Funcion que devuelve si el elemento actual es el elemento final
 */
 int isLast(){
 	return lista.actual == lista.size;
+}
+
+void rewindList(){
+	lista.actual = 0;
 }
