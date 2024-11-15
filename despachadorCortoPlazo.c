@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include <stdio.h>
 #include "lista.h"
 #include "mylib.h"
@@ -30,7 +29,7 @@ int main(){
     int shmid = shmget(key_shm_2, sizeof(struct Process), IPC_CREAT | 0666);  // Crear memoria compartida
     if (shmid == -1) {
         perror("Error al crear memoria compartida");
-        exit(1);
+        //exit(1);
     }
 
 
@@ -40,6 +39,7 @@ int main(){
 	*/
 	
 	/*Por mientras, creamos una estructura de ejemplo*/
+	printf("Despachador\n");
 	process_t p1 = {1,43,0,0,0,"pro1\n"};
 	process_t p2 = {2,12,0,0,0,"pro1\n"};
 	process_t p3 = {3,6,0,0,0,"pro1\n"};
@@ -48,7 +48,7 @@ int main(){
 
 	process_t prs[5] = {p1,p2,p3,p4,p5};
 	addProcesses(prs,5);
-
+	printf("Procesos añadidos\nDespachadno\n");
 	//inicio de despachador
 	roundRobin();
 	ordenarPorPrioridad();
@@ -63,12 +63,14 @@ void roundRobin(){
 	Recordemos que por documentacion addProcesses deja
 	apuntando actual al primer elemento agregado
 	*/
-	for(int i=0; i<listaDeProcesos.size; i++){
+	for(int i=0; i<size(); i++){
+		printf("Despachando proceso %d con rr\n",i);
 		aumentarEspera(QUANTUM);
 		aumentarTerminacion(QUANTUM);
 		//Se terminó Proceso, enviar a modulo de estadistica
 		if(restarEjecucion(QUANTUM)==-1){
 			sendToAnalytics(deleteProcess());
+			printf("Proceso %d eliminado con rr\n",i);
 			//No es necesario avanzar. La función delete process
 			//Recorre en automático
 		} else {
@@ -86,13 +88,16 @@ void priority(){
 	
 	 */
 
-	for(int i=0;i<listaDeProcesos.size;i++){
+	for(int i=0;i<size();i++){
+		printf("Despachando Proceso %d con priority\n",i);
 		int remain = listaDeProcesos.procesos[listaDeProcesos.actual].cpuBurst;
 		aumentarEspera(remain);
 		aumentarTerminacion(remain);
 
 		restarEjecucion(remain);
 
+		
+		printf("Proceso %d eliminado \n",i);
 		sendToAnalytics(deleteProcess());
 	}
 }
