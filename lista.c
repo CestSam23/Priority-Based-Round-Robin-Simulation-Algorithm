@@ -1,7 +1,7 @@
 #include "lista.h"
 #include <stdio.h>
 #include <sys/types.h>
-#define MAX 50
+
 
 /*
 Implementación de las funciones del archivo cabecera
@@ -115,12 +115,13 @@ int restarEjecucion(int s){
 		int time = lista.procesos[lista.actual].cpuBurst % s;
 		lista.procesos[lista.actual].cpuBurst = 0;
 		aumentarTerminacion(time);
-		deleteProcess();
+		//Si el proceso ya no es ejecutable. (CPUBURSTTIME 0 o negativo)
+		return -1;
 	} else {
 		lista.procesos[lista.actual].cpuBurst-=s;
 
 	}
-
+	//Return 1. Si aun es ejecutable el proceso
 	return 1;
 }
 /*Función que ordena los procesos mediante su cpu burstime restante, lo hace por medio del algoritmo de ordenación burbuja por su eficiencia en vectores*/
