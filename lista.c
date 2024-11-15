@@ -1,6 +1,5 @@
 #include "lista.h"
-#include <stdio.h>
-#include <sys/types.h>
+#include "mylib.h"
 #define MAX 50
 
 /*

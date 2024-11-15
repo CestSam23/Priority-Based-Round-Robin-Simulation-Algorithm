@@ -1,18 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/types.h>
-
-struct Process{
-	pid_t id;
-	int cpuBurst;
-	int tCompletition;
-	int tWaiting;
-	int priority;
-	char name[5];
-};
+#include "mylib.h"
 
 void finish(){
 	printf("Program Finished\n");

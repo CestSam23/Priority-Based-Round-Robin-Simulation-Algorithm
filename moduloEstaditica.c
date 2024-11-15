@@ -2,14 +2,6 @@
 #define MAX 1024
 //corto-largo tamaño lista (tamaño memoria compartida)
 // 2 regiones de memoria compartida
-struct Process{
-    pid_t id; // identifidor del proceso 
-    int cpuBurst; // tiempo de ejecucion
-    int tCompletition; // tiempo de terminacion 
-    int tWaiting; //tiempo espera
-    int priority; 
-    char name[5];
-} process;
 
 int addition = 0;
 int countProcessAnnihilated = 0;
