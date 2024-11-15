@@ -15,9 +15,7 @@ En este archivo esta la definición de las funciones
 */
 
 typedef struct{
-	int prev;
 	int actual;
-	int next;
 	int size;
 	struct Process procesos[MAX];
 }lista_t;

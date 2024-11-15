@@ -8,7 +8,7 @@ Implementación de las funciones del archivo cabecera
 Parte del código. Recordemos que usaremos un MAX
 */
 
-static lista_t lista = {.prev = -1, .actual = -1, .next = -1, .size = 0};
+static lista_t lista = {.actual = -1, .size = 0};
 
 
 /*
@@ -172,13 +172,9 @@ la estructura actual, y el entero actual
 */
 int next(){
 	if(lista.size>0){
-		lista.prev = lista.actual;
-		lista.actual = lista.next;
-		lista.next = (lista.next+1)% lista.size;
+		lista.actual = (lista.actual+1)% lista.size;
 	} else{
-		lista.prev = -1;
 		lista.actual = -1;
-		lista.next = -1;
 	}
 
 	return lista.actual;
@@ -186,13 +182,9 @@ int next(){
 
 int prev(){
 	if(lista.size > 0){
-		lista.next = lista.actual;
-		lista.actual = lista.prev;
-		lista.prev = (lista.prev-1+lista.size)%lista.size;
+		lista.actual = (lista.actual-1+lista.size)%lista.size;
 	} else {
-		lista.prev = -1;
 		lista.actual = -1;
-		lista.next = -1;
 	}
 
 	return lista.actual;

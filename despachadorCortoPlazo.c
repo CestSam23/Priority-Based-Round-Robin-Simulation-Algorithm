@@ -66,7 +66,6 @@ void roundRobin(){
 	*/
 	for(int i=0; i<size(); i++){
 		printf("Despachando proceso %d con rr\n",i);
-		printf("Actual: %d Siguiente: %d Anterior %d",listaDeProcesos.actual, listaDeProcesos.next, listaDeProcesos.prev);
 		aumentarEspera(QUANTUM);
 		aumentarTerminacion(QUANTUM);
 		//Se terminó Proceso, enviar a modulo de estadistica
@@ -79,7 +78,6 @@ void roundRobin(){
 			//Avanzamos a la siguiente estructura
 			//En ultimo elemento, regresamos al inicio
 			printf("Siguiente\n\n");
-					printf("Actual: %d Siguiente: %d Anterior %d",listaDeProcesos.actual, listaDeProcesos.next, listaDeProcesos.prev);
 
 			toString();
 			next();
@@ -153,17 +151,12 @@ process_t readProcess(lista_t *SharedMemory, int index) {
 
 // Función para escribir una lista (lote) e
  void writeList(lista_t *SharedMemory, int prev, int actual, int next, int size) {
-    SharedMemory->prev = prev;
     SharedMemory->actual = actual;
-    SharedMemory->next = next;
     SharedMemory->size = size;
 }
 
 // Función para leer una lista 
 void readList(lista_t *SharedMemory) {
-    printf("prev: %d, actual: %d, next: %d, size: %d\n", 
-    SharedMemory->prev, 
-    SharedMemory->actual, 
-    SharedMemory->next, 
-    SharedMemory->size);
+
+   
 }
