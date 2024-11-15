@@ -40,14 +40,15 @@ int main(){
 	
 	/*Por mientras, creamos una estructura de ejemplo*/
 	printf("Despachador\n");
-	process_t p1 = {1,43,0,0,0,"pro1\n"};
-	process_t p2 = {2,12,0,0,0,"pro1\n"};
-	process_t p3 = {3,6,0,0,0,"pro1\n"};
-	process_t p4 = {4,4,0,0,0,"pro1\n"};
-	process_t p5 = {5,7,0,0,0,"pro1\n"};
+	process_t p1 = {1,43,0,0,0,"pro1\0"};
+	process_t p2 = {2,12,0,0,0,"pro2\0"};
+	process_t p3 = {3,6,0,0,0,"pro3\0"};
+	process_t p4 = {4,4,0,0,0,"pro4\0"};
+	process_t p5 = {5,7,0,0,0,"pro5\0"};
 
 	process_t prs[5] = {p1,p2,p3,p4,p5};
 	addProcesses(prs,5);
+	toString();
 	printf("Procesos añadidos\nDespachadno\n");
 	//inicio de despachador
 	roundRobin();
@@ -65,6 +66,7 @@ void roundRobin(){
 	*/
 	for(int i=0; i<size(); i++){
 		printf("Despachando proceso %d con rr\n",i);
+		printf("Actual: %d Siguiente: %d Anterior %d",listaDeProcesos.actual, listaDeProcesos.next, listaDeProcesos.prev);
 		aumentarEspera(QUANTUM);
 		aumentarTerminacion(QUANTUM);
 		//Se terminó Proceso, enviar a modulo de estadistica
@@ -76,6 +78,10 @@ void roundRobin(){
 		} else {
 			//Avanzamos a la siguiente estructura
 			//En ultimo elemento, regresamos al inicio
+			printf("Siguiente\n\n");
+					printf("Actual: %d Siguiente: %d Anterior %d",listaDeProcesos.actual, listaDeProcesos.next, listaDeProcesos.prev);
+
+			toString();
 			next();
 		}
 	}
