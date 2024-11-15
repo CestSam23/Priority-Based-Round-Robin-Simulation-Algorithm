@@ -3,6 +3,9 @@
 #include <sys/types.h>
 #define MAX 1000
 
+#include "mylib.h"
+
+
 
 /*
 Definición de cabecera de la estructura de datos Lista
@@ -10,15 +13,6 @@ Se usará una lista de tamaño MAX para esto.
 En este archivo esta la definición de las funciones
 
 */
-
-typedef struct Process{
-	pid_t id;
-	int cpuBurst;
-	int tCompletition;
-	int tWaiting;
-	int priority;
-	char name[5];
-}process_t;
 
 typedef struct{
 	int prev;

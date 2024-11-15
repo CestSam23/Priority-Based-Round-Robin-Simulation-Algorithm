@@ -1,7 +1,7 @@
 #include "lista.h"
 #include <stdio.h>
 #include <sys/types.h>
-
+#include "mylib.h"
 
 /*
 Implementación de las funciones del archivo cabecera

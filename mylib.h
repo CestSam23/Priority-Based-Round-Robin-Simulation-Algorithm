@@ -19,5 +19,16 @@
 #include <sys/msg.h>
 #include <sys/shm.h>
 
+
+// se implementa la estructura para no hacerlo repetitivo en los demas codigos.
+typedef struct Process{
+    pid_t id; // identifidor del proceso 
+    int cpuBurst; // tiempo de ejecucion
+    int tCompletition; // tiempo de terminacion 
+    int tWaiting; //tiempo espera
+    int priority; 
+    char name[5];
+} process_t;
+
 #endif 
 
