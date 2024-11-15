@@ -11,15 +11,6 @@ En este archivo esta la definición de las funciones
 
 */
 
-typedef struct Process{
-	pid_t id;
-	int cpuBurst;
-	int tCompletition;
-	int tWaiting;
-	int priority;
-	char name[5];
-}process_t;
-
 typedef struct{
 	int prev;
 	int actual;

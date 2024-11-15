@@ -8,10 +8,10 @@ void freeResources(int semid, int shmid, char *shm_ptr) {
 
 void AtSharedMemory(key_t key, lista_t *shm_ptr, int shmid){
     shm_ptr = shmat(shmid, 0, 0);  // Asociar memoria compartida
-    if (shm_ptr == (char *)-1) {
+    /*if (shm_ptr == (char *)-1) {
         perror("Error al asociar memoria compartida");
         exit(1);
-    }
+    }*/
 }
 
 // Funcion para esccribir los procesos en la memoria compartida mediante su indice
