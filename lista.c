@@ -130,7 +130,7 @@ int restarEjecucion(int s){
 void ordenarPorPrioridad(){
 	for(int i=0; i<lista.size-1;i++){
 		for(int j=0; j<lista.size-i-1;j++){
-			if(lista.procesos[j].cpuBurst> lista.procesos[i+1].cpuBurst){
+			if(lista.procesos[j].cpuBurst> lista.procesos[j+1].cpuBurst){
 				process_t aux=lista.procesos[j];
 				lista.procesos[j]=lista.procesos[j+1];
 				lista.procesos[j+1]=aux;
