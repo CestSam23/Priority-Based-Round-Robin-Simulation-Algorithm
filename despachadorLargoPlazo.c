@@ -1,4 +1,5 @@
 #include "mylib.h"
+#include "lista.h"
 
 void finish(){
 	printf("Program Finished\n");
@@ -14,9 +15,27 @@ void finish(){
 
 */
 
+// Función para liberar los recursos
+void freeResources(int semid, int shmid, char *shm_ptr) {
+    shmdt(shm_ptr);              // Desvincula la memoria compartida
+    shmctl(shmid, IPC_RMID, 0);  // Elimina la memoria compartida
+}
+
+// Función para inicializar la memoria compartida
+void createdSharedMemory(key_t key, lista_t *shm_ptr){
+	int shmid = shmget(key, sizeof(lista_t), IPC_CREAT | 0666);  // Crear memoria compartida
+    if (shmid == -1) {
+        perror("Error al crear memoria compartida");
+        exit(1);
+    }
+}
+
 int main(){
 	key_t key_sem = ftok("/bin/ls", 1); // llave semaforo 
-    key_t key_shm = ftok("/bin/ls", 2); // llave memoria compartida
+    key_t key_shm_1 = ftok("/bin/ls", 2); // llave memoria compartida
+
+
+
 
 	FILE *fPtr;
 	int n, k;
