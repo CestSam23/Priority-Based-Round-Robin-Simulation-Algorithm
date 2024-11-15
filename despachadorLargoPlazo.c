@@ -29,6 +29,9 @@ void finish(){
 */
 
 int main(){
+	key_t key_sem = ftok("/bin/ls", 1); // llave semaforo 
+    key_t key_shm = ftok("/bin/ls", 2); // llave memoria compartida
+
 	FILE *fPtr;
 	int n, k;
 	fPtr = fopen("processRequest.dat","rb");
