@@ -1,7 +1,7 @@
 #ifndef LISTA_H
 #define LISTA_H
 #include <sys/types.h>
-#define MAX 50
+#define MAX 1000
 
 
 /*
