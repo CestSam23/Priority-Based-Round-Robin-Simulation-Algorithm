@@ -1,6 +1,6 @@
 #ifndef LISTA_H
 #define LISTA_H
-#include <sys/types.h>
+#include "mylib.h"
 #define MAX 50
 
 

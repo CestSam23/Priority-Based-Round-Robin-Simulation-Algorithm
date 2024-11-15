@@ -1,15 +1,8 @@
 #include "mylib.h"
+#include "lista.h"
 #define MAX 1024
 //corto-largo tamaño lista (tamaño memoria compartida)
 // 2 regiones de memoria compartida
-struct Process{
-    pid_t id; // identifidor del proceso 
-    int cpuBurst; // tiempo de ejecucion
-    int tCompletition; // tiempo de terminacion 
-    int tWaiting; //tiempo espera
-    int priority; 
-    char name[5];
-} process;
 
 int addition = 0;
 int countProcessAnnihilated = 0;
@@ -59,6 +52,30 @@ void getProcess(int cpuBurst, int tCompletition,int tWaiting){
 
     tWaiting=tCompletition-cpuBurst;
     addition+=tWaiting;
+}
+
+// Funcion para leer los procesos en la memoria compartida mediante su indice
+process_t readProcess(lista_t *SharedMemory, int index) {
+    // Verificar que el índice esté dentro de los límites
+    if (index < 0 || index >= MAX) {
+        printf("Índice fuera de rango.\n");
+        // Devolver un valor por defecto o nulo
+        process_t procesoNulo = {0};
+        return procesoNulo;
+    }
+
+    // Leer el proceso de la memoria compartida
+    return SharedMemory->procesos[index];
+}
+
+
+// Función para leer una lista 
+void readList(lista_t *SharedMemory) {
+    printf("prev: %d, actual: %d, next: %d, size: %d\n", 
+    SharedMemory->prev, 
+    SharedMemory->actual, 
+    SharedMemory->next, 
+    SharedMemory->size);
 }
 
 int main(){
