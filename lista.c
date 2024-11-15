@@ -115,8 +115,7 @@ int restarEjecucion(int s){
 		int time = lista.procesos[lista.actual].cpuBurst % s;
 		lista.procesos[lista.actual].cpuBurst = 0;
 		aumentarTerminacion(time);
-		//Si el proceso ya no es ejecutable. (CPUBURSTTIME 0 o negativo)
-		return -1;
+		return -1; //Este -1 indica al despachador que el proceso actual ya tiene que ser eliminado y enviado al modulo de estadistica porque su cpuburstime se acabó 
 	} else {
 		lista.procesos[lista.actual].cpuBurst-=s;
 
@@ -126,14 +125,6 @@ int restarEjecucion(int s){
 }
 /*Función que ordena los procesos mediante su cpu burstime restante, lo hace por medio del algoritmo de ordenación burbuja por su eficiencia en vectores*/
 void ordenarPorPrioridad(){
-	/*Verifica y elimina los procesos que ya no necesitan ser ordenados*/
-	for(int k=0; k<lista.size; k++){
-		if(lista.procesos[k].cpuBurst<=0){
-			deleteProcess(lista.procesos[k]);
-			k--;
-		}
-	}
-
 	for(int i=0; i<lista.size-1;i++){
 		for(int j=0; j<lista.size-i-1;j++){
 			if(lista.procesos[j].cpuBurst> lista.procesos[i+1].cpuBurst){
