@@ -1,13 +1,14 @@
 #include "lista.h"
+#include <stdio.h>
+#include <sys/types.h>
 #include "mylib.h"
-#define MAX 50
 
 /*
 Implementación de las funciones del archivo cabecera
 Parte del código. Recordemos que usaremos un MAX
 */
 
-static lista_t lista = {.prev = -1, .actual = -1, .next = -1, .size = 0};
+static lista_t lista = {.actual = -1, .size = 0};
 
 
 /*
@@ -65,8 +66,9 @@ process_t deleteProcess(){
 		lista.procesos[i] = lista.procesos[i+1];
 	}
 	lista.size--;
-	prev();
-	next();
+	if(lista.actual==lista.size-1){
+		prev();
+	};
 	//Devolvemos la estructura original
 	return toReturn;
 }
@@ -119,14 +121,14 @@ int restarEjecucion(int s){
 		lista.procesos[lista.actual].cpuBurst-=s;
 
 	}
-
+	//Return 1. Si aun es ejecutable el proceso
 	return 1;
 }
 /*Función que ordena los procesos mediante su cpu burstime restante, lo hace por medio del algoritmo de ordenación burbuja por su eficiencia en vectores*/
 void ordenarPorPrioridad(){
 	for(int i=0; i<lista.size-1;i++){
 		for(int j=0; j<lista.size-i-1;j++){
-			if(lista.procesos[j].cpuBurst> lista.procesos[i+1].cpuBurst){
+			if(lista.procesos[j].cpuBurst> lista.procesos[j+1].cpuBurst){
 				process_t aux=lista.procesos[j];
 				lista.procesos[j]=lista.procesos[j+1];
 				lista.procesos[j+1]=aux;
@@ -154,6 +156,8 @@ void toString(){
 		printf("List Empty");
 		return;
 	}else{
+		printf("Actual: %d\n",lista.actual);
+		printf("Size: %d\n", lista.size);
 		printf("\tLIST: \n");
 		for(int i=0; i<lista.size;i++){
 			process_t procesoAux=lista.procesos[i];
@@ -171,13 +175,9 @@ la estructura actual, y el entero actual
 */
 int next(){
 	if(lista.size>0){
-		lista.prev = lista.actual;
-		lista.actual = lista.next;
-		lista.next = (lista.next+1)% lista.size;
+		lista.actual = (lista.actual+1)% lista.size;
 	} else{
-		lista.prev = -1;
 		lista.actual = -1;
-		lista.next = -1;
 	}
 
 	return lista.actual;
@@ -185,13 +185,9 @@ int next(){
 
 int prev(){
 	if(lista.size > 0){
-		lista.next = lista.actual;
-		lista.actual = lista.prev;
-		lista.prev = (lista.prev-1+lista.size)%lista.size;
+		lista.actual = (lista.actual-1+lista.size)%lista.size;
 	} else {
-		lista.prev = -1;
 		lista.actual = -1;
-		lista.next = -1;
 	}
 
 	return lista.actual;
@@ -210,4 +206,8 @@ Funcion que devuelve si el elemento actual es el elemento final
 */
 int isLast(){
 	return lista.actual == lista.size;
+}
+
+void rewindList(){
+	lista.actual = 0;
 }

@@ -1,7 +1,10 @@
 #ifndef LISTA_H
 #define LISTA_H
+#include <sys/types.h>
+#define MAX 1000
+
 #include "mylib.h"
-#define MAX 50
+
 
 
 /*
@@ -12,9 +15,7 @@ En este archivo esta la definición de las funciones
 */
 
 typedef struct{
-	int prev;
 	int actual;
-	int next;
 	int size;
 	struct Process procesos[MAX];
 }lista_t;
@@ -34,7 +35,7 @@ int prev();
 process_t actual();
 int actualN();
 int isLast();
+void rewindList();
 
 void toString();
-
 #endif
