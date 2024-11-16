@@ -50,18 +50,19 @@ int main(){
 
 	process_t prs[7] = {p1,p2,p3,p4,p5,p6,p7};
 	addProcesses(prs,7);
+	printf("\t\t PROCESOS AÑADIDOS\n");
 	//inicio de despachador
+	printf("\t\t ROUND ROBIN: \n\n");
 	roundRobin();
 
-	printf("Round Robin Terminado. LISTA ACTUAL\n");
-	toString();
+	printf("\n\t\tROUND ROBIN TERMINADO.\n\n");
+	
 
-	printf("INICIANDO PRIORIDADES\n\n");
+	printf("\t\tINICIANDO ALGORITMO PRIORIDADES\n\n");
 	ordenarPorPrioridad();
-	toString();
-	printf("INICIO\n\n");
+	printf("\tINICIO\n\n");
 	priority();
-	printf("Finalizacion");
+	printf("\tPROCESOS DESPACHADOS\n");
 
 	//Espera de otro lote de memoria
 }
@@ -74,24 +75,25 @@ void roundRobin(){
 	*/
 	rewindList();
 	for(int i=0; i<size(); i++){
-		printf("****Despachando Proceso %d con Round Robin****\n",i);
+		printf("------Proceso %d -----\n",i);
 		aumentarEspera(QUANTUM);
 		aumentarTerminacion(QUANTUM);
 		//Se terminó Proceso, enviar a modulo de estadistica
 		if(restarEjecucion(QUANTUM)==-1){
-			printf("El proceso %d ha sido eliminado\n",i);
+			printf("El proceso %d ha sido despachado por completo\n",i);
 			sendToAnalytics(deleteProcess());
-			toString();
+			printf("***********************************\n");
 			//No es necesario avanzar. La función delete process
 			//Recorre en automático
 		} else {
 			//Avanzamos a la siguiente estructura
 			//En ultimo elemento, regresamos al inicio
-			printf("ListaFinal\n");
+			
+			printf("Despachando proceso:%d\n", i);
 			next();
-			toString();
+			printf("***********************************\n");
 		}
-		printf("***********************************\n");
+		
 	}
 }
 
@@ -104,17 +106,18 @@ void priority(){
 	rewindList();
 	int iterations = size();
 	for(int i=0;i<iterations;i++){
-		printf("**********Despachando Proceso %d con priority\n*************",i);
+		printf("------Proceso: %d ------\n", i);
+		printf("Despachando Proceso %d \n",i);
 		int remain = actual().cpuBurst;
-		printf("Despachando %d con %d\n\n",i,remain);
+		
 		aumentarEspera(remain);
 		aumentarTerminacion(remain);
 		restarEjecucion(remain);
 
 		
-		printf("Proceso %d eliminado \n",i);
+		printf("Proceso %d eliminado \n\n",i);
 		sendToAnalytics(deleteProcess());
-		toString();
+		
 		
 	}
 }

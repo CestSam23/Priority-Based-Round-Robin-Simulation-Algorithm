@@ -38,5 +38,4 @@ int isLast();
 void rewindList();
 
 void toString();
-
 #endif
