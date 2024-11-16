@@ -1,15 +1,10 @@
-#include "lista.h"
-#include <stdio.h>
-#include <sys/types.h>
 #include "mylib.h"
-
 /*
 Implementación de las funciones del archivo cabecera
 Parte del código. Recordemos que usaremos un MAX
 */
 
 static lista_t lista = {.actual = -1, .size = 0};
-
 
 /*
 Añade la estructura de un proceso individualmente, 
@@ -46,11 +41,13 @@ int addProcesses(struct Process process[], int n){
 	
 	return sizeOfArray;
 }
+
 /*
 Elimina el proceso apuntado por actual
 Recorre los demás elementos
 Deja actual como el elemento siguiente inmediato al eliminado
 */
+
 process_t deleteProcess(){
 	//Verifica si la lista no esta vacia
 	if(isEmpty()){

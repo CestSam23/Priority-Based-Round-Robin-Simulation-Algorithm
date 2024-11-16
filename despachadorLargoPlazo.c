@@ -1,5 +1,4 @@
 #include "mylib.h"
-#include "lista.h"
 
 void finish(){
 	printf("Program Finished\n");
@@ -19,6 +18,7 @@ void finish(){
 void freeResources(int semid, int shmid, char *shm_ptr) {
     shmdt(shm_ptr);              // Desvincula la memoria compartida
     shmctl(shmid, IPC_RMID, 0);  // Elimina la memoria compartida
+	 semctl(semid, 0, IPC_RMID); // elimina los semaforos 
 }
 
 // Función para inicializar la memoria compartida
@@ -30,10 +30,32 @@ void createdSharedMemory(key_t key, lista_t *shm_ptr){
     }
 }
 
+
+// funciones para los semaforos 
+void semDown(int num_sem, int semid){
+	struct sembuf down = {num_sem, -1, 0}; 
+	semop(semid, &down, 1);
+}
+
+void semUp(int num_sem, int semid){
+	struct sembuf up = {num_sem, 1, 0}; 
+	semop(semid, &up, 1);
+
+}
+
 int main(){
 	key_t key_sem = ftok("/bin/ls", 1); // llave semaforo 
     key_t key_shm_1 = ftok("/bin/ls", 2); // llave memoria compartida
 
+	int semid=semget(key_sem, 3, IPC_CREAT | 0600);
+	if (semid == -1) {
+        perror("Error al crear semáforos");
+        exit(1);
+    }
+
+	semctl(semid, 0, SETVAL, 1); // Inicializa el primer semáforo a 1
+	semctl(semid, 1, SETVAL, 0); // Inicializa el segundo semáforo a 0
+	semctl(semid, 2, SETVAL, 0); // Inicializa el tercer semáforo a 0
 
 
 
@@ -43,6 +65,7 @@ int main(){
 	signal(SIGTERM,finish);
 	if(fPtr==NULL){
 		perror("Error opening file of data\n");
+		// tenemos de liberar los recursos  si hay algun error
 	} else {
 		//FILE IS OPENED
 
@@ -78,4 +101,6 @@ int main(){
 			sleep(k);
 		}
 	}
+	fclose(fPtr);
+	return 0;
 }
