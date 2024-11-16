@@ -67,9 +67,7 @@ process_t deleteProcess(){
 	}
 	lista.size--;
 	if(lista.actual==lista.size-1){
-		printf("Ultimo elemento eliminado\n");
 		prev();
-		toString();
 	};
 	//Devolvemos la estructura original
 	return toReturn;
@@ -178,7 +176,6 @@ la estructura actual, y el entero actual
 int next(){
 	if(lista.size>0){
 		lista.actual = (lista.actual+1)% lista.size;
-		printf("Actual %d\n",lista.actual);
 	} else{
 		lista.actual = -1;
 	}
