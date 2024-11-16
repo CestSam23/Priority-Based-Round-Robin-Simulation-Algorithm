@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include "lista.h"
 #include "mylib.h"
-#include <signal.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 #define QUANTUM 5
 
@@ -12,7 +7,7 @@ void freeResources(int semid, int shmid, char *shm_ptr);
 void AtSharedMemory(key_t key, lista_t *shm_ptr, int shmid);
 void writeProcess(lista_t *SharedMemory, int index, process_t process);
 process_t readProcess(lista_t *SharedMemory, int index);
-void writeList(lista_t *SharedMemory, int prev, int actual, int next, int size);
+void writeList(lista_t *SharedMemory, int actual, int size);
 void readList(lista_t *SharedMemory);
 
 void roundRobin();
@@ -187,7 +182,7 @@ process_t readProcess(lista_t *SharedMemory, int index) {
 }
 
 // Función para escribir una lista (lote) e
- void writeList(lista_t *SharedMemory, int prev, int actual, int next, int size) {
+ void writeList(lista_t *SharedMemory, int actual, int size) {
     SharedMemory->actual = actual;
     SharedMemory->size = size;
 }

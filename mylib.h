@@ -18,9 +18,12 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
+#include <sys/sem.h>
 
+//----
 
-// se implementa la estructura para no hacerlo repetitivo en los demas codigos.
+#include "lista.h"
+
 typedef struct Process{
     pid_t id; // identifidor del proceso 
     int cpuBurst; // tiempo de ejecucion
