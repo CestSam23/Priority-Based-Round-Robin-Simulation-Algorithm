@@ -19,6 +19,8 @@ void roundRobin();
 void priority();
 void sendToAnalytics(process_t process);
 void despachar();
+void finish();
+
 
 lista_t listaDeProcesos;
 
@@ -32,7 +34,7 @@ int main(){
         perror("Error al crear memoria compartida");
         //exit(1);
     }
-
+	signal(SIGTERM, finish);
 
 	/*
 	Entraremos en un estado constante de espera de lotes de procesos por el despachador de largo plazo
@@ -194,4 +196,9 @@ process_t readProcess(lista_t *SharedMemory, int index) {
 void readList(lista_t *SharedMemory) {
 
    
+}
+
+void finish(){
+	printf("SALIENDO DEL DESPACHADOR...\n");
+	exit(1);
 }
