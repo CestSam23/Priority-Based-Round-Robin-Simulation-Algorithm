@@ -22,8 +22,6 @@
 
 //----
 
-
-
 typedef struct Process{
     pid_t id; // identifidor del proceso 
     int cpuBurst; // tiempo de ejecucion
