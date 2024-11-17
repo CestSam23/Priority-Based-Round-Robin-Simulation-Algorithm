@@ -1,6 +1,7 @@
 #ifndef LISTA_H
 #define LISTA_H
 #define MAX 1000
+#include "mylib.h"
 
 /*
 Definición de cabecera de la estructura de datos Lista
