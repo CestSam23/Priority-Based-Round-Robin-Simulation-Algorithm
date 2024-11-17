@@ -1,19 +1,18 @@
-#include <stdio.h>
-#include "lista.h"
 #include "mylib.h"
-#include <signal.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 #define QUANTUM 5
+int semid;
 
 //Para memoria compartida
-void freeResources(int semid, int shmid, char *shm_ptr);
-void AtSharedMemory(key_t key, lista_t *shm_ptr, int shmid);
-void writeProcess(lista_t *SharedMemory, int index, process_t process);
-process_t readProcess(lista_t *SharedMemory, int index);
-void writeList(lista_t *SharedMemory, int prev, int actual, int next, int size);
-void readList(lista_t *SharedMemory);
+key_t generateKey(const char *path, int id);
+int createdSharedMemory(key_t key, size_t size);
+process_t *atSharedMemory(int shmid);
+void freeResources(int shmid, int semid, process_t *shm_ptr);
+
+// Para los semáforos
+int createdSemaphore(key_t key, int num_sem);
+void down(int semid, int sem_num);
+void up(int semid, int sem_num);
 
 void roundRobin();
 void priority();
@@ -25,16 +24,19 @@ void finish();
 lista_t listaDeProcesos;
 
 int main(){
-
-	//Los procesos guardados por la memoria compartida son guardados en listaDeProcesos
-
-    key_t key_shm_2 = ftok("/bin/ls", 2); // llave memoria compartida
-    int shmid = shmget(key_shm_2, sizeof(struct Process), IPC_CREAT | 0666);  // Crear memoria compartida
-    if (shmid == -1) {
-        perror("Error al crear memoria compartida");
-        //exit(1);
-    }
 	signal(SIGTERM, finish);
+
+	key_t keyShmDispatcher = generateKey("/bin/ls", 2);
+    int shmid=createdSharedMemory(keyShmDispatcher, sizeof(process_t));
+	process_t *shm_ptr_dispatcher= atSharedMemory(shmid);
+
+    // Crear semáforos para sincronización
+    key_t keySemDispatcher = ftok("/bin/ls", 3);
+    semid= createdSemaphore(keySemDispatcher, 2);
+
+    // Inicializar semáforos
+    semctl(semid, 0, SETVAL, 0);  // Semáforo de escritura (inicializado a 0)
+    semctl(semid, 1, SETVAL, 1);  // Semáforo de lectura (inicializado a 1)
 
 	/*
 	Entraremos en un estado constante de espera de lotes de procesos por el despachador de largo plazo
@@ -66,8 +68,59 @@ int main(){
 	estadística.
 	Cuando haya lotes listos para leer, podemos solamente llamar a despachar
 	*/
+	down(semid,0); // Se bloquea para escritura
 	despachar();
+	up(semid,1); // Se desbloquea para lectura
+
 	//Espera de otro lote de memoria
+	
+	freeResources(semid, shmid, shm_ptr_dispatcher);
+	return 0;
+}
+
+key_t generateKey(const char *path, int id) {
+    key_t key = ftok(path, id);
+    if (key == -1) {
+        perror("Error al generar clave de memoria compartida\n");
+        exit(EXIT_FAILURE);
+    }
+    return key;
+}
+
+int createdSharedMemory(key_t key, size_t size) {
+    int shmid = shmget(key, size, IPC_CREAT | 0666);
+    if (shmid == -1) {
+        perror("Error al acceder a memoria compartida");
+        exit(EXIT_FAILURE);
+    }
+    return shmid;
+}
+
+process_t *atSharedMemory(int shmid) {
+    process_t *shm_ptr = (process_t *)shmat(shmid, 0, 0);
+    if (shm_ptr == (void *)-1) {
+        perror("Error al asociar memoria compartida\n");
+        exit(EXIT_FAILURE);
+    }
+    return shm_ptr;
+}
+
+int createdSemaphore(key_t key, int num_sem){
+  int semid = semget(key, num_sem, IPC_CREAT | 0666);  // Dos semáforos: uno para lectura, otro para escritura
+    if (semid == -1) {
+        perror("Error al crear semáforos");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void down(int semid, int sem_num) {
+    struct sembuf sops = {sem_num, -1, 0}; // Espera en semáforo
+    semop(semid, &sops, 1);
+}
+
+void up(int semid, int sem_num) {
+    struct sembuf sops = {sem_num, 1, 0}; // Señaliza que se terminó la operación
+    semop(semid, &sops, 1);
 }
 
 void despachar(){
@@ -82,7 +135,6 @@ void despachar(){
 	printf("\tINICIO\n\n");
 	priority();
 	printf("\tPROCESOS DESPACHADOS\n");
-
 }
 
 void roundRobin(){
@@ -138,67 +190,29 @@ void priority(){
 		printf("El proceso %s ha sido despachado por completo\n",actual().name);
 
 		sendToAnalytics(deleteProcess());
-		
-		
+	
 	}
 }
 
 void sendToAnalytics(process_t process){
 	//MEMORIA COMPARTIDA. ENVIADA A ANALISIS
+	key_t keyShmDispatcher = generateKey("/bin/ls", 2);
+    int shmid = createdSharedMemory(keyShmDispatcher, sizeof(process_t));
+
+	process_t *shm_ptr = atSharedMemory(shmid);
+    // Escribir el proceso en la memoria compartida
+    *shm_ptr = process;
+    // Sincronizar semáforos si es necesario antes de que otro proceso lea este dato
+    up(semid, 0);
 }
 
-void freeResources(int semid, int shmid, char *shm_ptr) {
+void freeResources(int semid, int shmid, process_t *shm_ptr) {
     shmdt(shm_ptr);              // Desvincula la memoria compartida
     shmctl(shmid, IPC_RMID, 0);  // Elimina la memoria compartida
-}
-
-void AtSharedMemory(key_t key, lista_t *shm_ptr, int shmid){
-    shm_ptr = shmat(shmid, 0, 0);  // Asociar memoria compartida
-    /*if (shm_ptr == (char *)-1) {
-        perror("Error al asociar memoria compartida");
-        exit(1);
-    }*/
-}
-
-// Funcion para esccribir los procesos en la memoria compartida mediante su indice
-void writeProcess(lista_t *SharedMemory, int index, process_t process) {
-    // Verificar que el índice esté dentro de los límites
-    if (index < 0 || index >= MAX) {
-        printf("Índice fuera de rango.\n");
-        return;
-    }
-
-    // Escribir los datos del proceso en la memoria compartida
-    SharedMemory->procesos[index] = process;
-}
-
-// Funcion para leer los procesos en la memoria compartida mediante su indice
-process_t readProcess(lista_t *SharedMemory, int index) {
-    // Verificar que el índice esté dentro de los límites
-    if (index < 0 || index >= MAX) {
-        printf("Índice fuera de rango.\n");
-        // Devolver un valor por defecto o nulo
-        process_t procesoNulo = {0};
-        return procesoNulo;
-    }
-
-    // Leer el proceso de la memoria compartida
-    return SharedMemory->procesos[index];
-}
-
-// Función para escribir una lista (lote) e
- void writeList(lista_t *SharedMemory, int prev, int actual, int next, int size) {
-    SharedMemory->actual = actual;
-    SharedMemory->size = size;
-}
-
-// Función para leer una lista 
-void readList(lista_t *SharedMemory) {
-
-   
+	shmctl(semid, IPC_RMID, 0);  
 }
 
 void finish(){
 	printf("SALIENDO DEL DESPACHADOR...\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
