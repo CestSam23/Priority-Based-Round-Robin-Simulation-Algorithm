@@ -18,6 +18,7 @@ int addProcess(struct Process process){
 	lista.procesos[lista.size]=process;
 	lista.size++;
 	next();
+	return 0;
 }
 
 /*
