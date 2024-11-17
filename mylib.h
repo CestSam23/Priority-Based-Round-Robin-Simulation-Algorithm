@@ -22,7 +22,7 @@
 
 //----
 
-#include "lista.h"
+
 
 typedef struct Process{
     pid_t id; // identifidor del proceso 
@@ -32,6 +32,8 @@ typedef struct Process{
     int priority; 
     char name[5];
 } process_t;
+
+#include "lista.h"
 
 #endif 
 
