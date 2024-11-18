@@ -91,7 +91,7 @@ void LargoPlazo(char *name){
 
 /* CORTO PLAZO */
 
-lista_t listaDeProcesos;
+lista_t listaDeProcesos = {-1,0};
 void roundRobin();
 void priority();
 void sendToAnalytics(process_t process);
@@ -104,10 +104,11 @@ void CortoPlazo(){
         // Leer los datos de la memoria compartida y almacenarlos en listaDeProcesos
         printf("Procesos disponibles para leer: %d\n", size(shared_data));  // Depuración: cuántos procesos hay
         for (int i = 0; i < size(shared_data); i++) {
-            printf("Proceso leido: %s\n", shared_data->procesos[i].name);  // Depuración: muestra los procesos leídos
+            printf("Proceso leido: %s\n", actual(shared_data).name);  // Depuración: muestra los procesos leídos
             addProcess(&listaDeProcesos,actual(shared_data));
             next(shared_data);
         }
+
         while(isEmpty(shared_data)!=1){
             deleteProcess(shared_data);
         }
@@ -126,19 +127,20 @@ void CortoPlazo(){
 
 void roundRobin(){
     // Iniciamos el Round Robin en la lista de procesos
-    rewindList();
+    rewindList(&listaDeProcesos);
     int iterations = size(&listaDeProcesos);
     for (int i = 0; i < iterations; i++) {
         printf("---------------------------Proceso %s ----------------------\n", actual(&listaDeProcesos).name);
         // Aquí es donde manejas el tiempo de CPU
         aumentarEspera(&listaDeProcesos, QUANTUM);
-        aumentarTerminacion(&listaDeProcesos, QUANTUM);
         if (restarEjecucion(&listaDeProcesos, QUANTUM) == -1) {
             printf("El proceso %s ha sido despachado por completo con RoundRobin\n", actual(&listaDeProcesos).name);
             sendToAnalytics(deleteProcess(&listaDeProcesos));
             printf("*******************************************************\n\n");
         } else {
+            aumentarTerminacion(&listaDeProcesos, QUANTUM);
             printf("\t\tDespachando proceso: %s\n", actual(&listaDeProcesos).name);
+            next(&listaDeProcesos);
             printf("*******************************************************\n\n");
         }
     }
@@ -163,7 +165,7 @@ void priority(){
 
 
 void sendToAnalytics(process_t process){
-    if (process.cpuBurst > 0) { 
+    if (process.tCompletition > 0) { 
         countProcessExecuted++; 
     } else { 
         countProcessAnnihilated++; 

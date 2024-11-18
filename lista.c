@@ -9,13 +9,13 @@ Añade la estructura de un proceso individualmente,
 actualiza los punteros, retorna 1 si se agregó correctamente, 
 0 en caso contrario
 */
-int addProcess(lista_t lista, struct Process process){
+int addProcess(lista_t *lista, struct Process process){
 	if(lista->size>=MAX){
 		return 0; 
 	}
 	lista->procesos[lista->size]=process;
 	lista->size++;
-	next();
+	next(lista);
 	return 0;
 }
 
@@ -25,14 +25,14 @@ Devuelve -1 si ocurrió un error
 Devuelve la cantidad de elementos copiados
 Deja apuntando en la posición incial del primer elemento agregado
 */
-int addProcesses(lista_t lista, struct Process process[], int n){
+int addProcesses(lista_t *lista, struct Process process[], int n){
 	int sizeOfArray = n;
 	if(lista->size >= MAX || lista->size + sizeOfArray >= MAX){
 		return -1;
 	}
 	lista->procesos[lista->size] = process[0];
 	lista->size++;
-	next();
+	next(lista);
 	for(int i=1;i<sizeOfArray;i++){
 		lista->procesos[lista->size] = process[i];
 		lista->size++;
@@ -47,9 +47,9 @@ Recorre los demás elementos
 Deja actual como el elemento siguiente inmediato al eliminado
 */
 
-process_t deleteProcess(lista_t lista){
+process_t deleteProcess(lista_t *lista){
 	//Verifica si la lista no esta vacia
-	if(isEmpty()){
+	if(isEmpty(lista)){
 		process_t empty = {0};
 		return empty;
 	}
@@ -63,7 +63,7 @@ process_t deleteProcess(lista_t lista){
 	}
 	lista->size--;
 	if(lista->actual==lista->size-1){
-		prev();
+		prev(lista);
 	};
 	//Devolvemos la estructura original
 	return toReturn;
@@ -71,7 +71,7 @@ process_t deleteProcess(lista_t lista){
 /*
 Función que obtiene la estructura del proceso dado su indice
 */
-process_t getprocess(lista_t lista, int n){
+process_t getprocess(lista_t *lista, int n){
 	if(n>=0 && n<=lista->size){
 		return lista->procesos[n];
 	}
@@ -84,7 +84,7 @@ process_t getprocess(lista_t lista, int n){
 Esta función aumenta el tiempo de espera de todos los procesos
 excepto del actual despachado.
 */
-int aumentarEspera(lista_t lista, int s){
+int aumentarEspera(lista_t *lista, int s){
 	for(int i=0; i<lista->size;i++){
 		if(i!=lista->actual)
 			lista->procesos[i].tWaiting += s;
@@ -93,7 +93,7 @@ int aumentarEspera(lista_t lista, int s){
 	return 1;
 }
 
-int aumentarTerminacion(lista_t lista, int s){
+int aumentarTerminacion(lista_t *lista, int s){
 	lista->procesos[lista->actual].tCompletition += s;
 	return 1;
 }
@@ -104,14 +104,14 @@ es decir al que está siendo despachado, si el cpuBurst restante es
 menor o igual que cero no es necesario seguirle restando, por lo que
 lo eliminamos
 */
-int restarEjecucion(lista_t lista, int s){
-	if(isEmpty()) return 0;
+int restarEjecucion(lista_t *lista, int s){
+	if(isEmpty(lista)) return 0;
 
 
 	if(lista->procesos[lista->actual].cpuBurst-s <= 0){
 		int time = lista->procesos[lista->actual].cpuBurst % s;
 		lista->procesos[lista->actual].cpuBurst = 0;
-		aumentarTerminacion(time);
+		aumentarTerminacion(lista, time);
 		return -1; //Este -1 indica al despachador que el proceso actual ya tiene que ser eliminado y enviado al modulo de estadistica porque su cpuburstime se acabó 
 	} else {
 		lista->procesos[lista->actual].cpuBurst-=s;
@@ -121,7 +121,7 @@ int restarEjecucion(lista_t lista, int s){
 	return 1;
 }
 /*Función que ordena los procesos mediante su cpu burstime restante, lo hace por medio del algoritmo de ordenación burbuja por su eficiencia en vectores*/
-void ordenarPorPrioridad(lista_t lista){
+void ordenarPorPrioridad(lista_t *lista){
 	for(int i=0; i<lista->size-1;i++){
 		for(int j=0; j<lista->size-i-1;j++){
 			if(lista->procesos[j].cpuBurst> lista->procesos[j+1].cpuBurst){
@@ -137,18 +137,18 @@ void ordenarPorPrioridad(lista_t lista){
 Esta función devuelve el tamaño de la lista, cada que se agrega un proceso
 size aumenta, por lo que nos dice el tamaño de lista
 */
-int size(lista_t lista){
+int size(lista_t *lista){
 	return lista->size;
 }
 
 /*Esta función devuelve si la lista esta vacia.
 En cuyo caso devuelve 1, contrario 0.*/
-int isEmpty(lista_t lista){
+int isEmpty(lista_t *lista){
 	return lista->size == 0;
 }
 /*IMPRIME TODA LA LISTA*/
-void toString(lista_t lista){
-	if(isEmpty()){
+void toString(lista_t *lista){
+	if(isEmpty(lista)){
 		printf("List Empty");
 		return;
 	}else{
@@ -169,7 +169,7 @@ Funciona para casos esquina, supuestamente jaja
 Agregamos la funcion actual y actualN, que devuelve
 la estructura actual, y el entero actual
 */
-int next(lista_t lista){
+int next(lista_t *lista){
 	if(lista->size>0){
 		lista->actual = (lista->actual+1)% lista->size;
 	} else{
@@ -179,7 +179,7 @@ int next(lista_t lista){
 	return lista->actual;
 }
 
-int prev(lista_t lista){
+int prev(lista_t *lista){
 	if(lista->size > 0){
 		lista->actual = (lista->actual-1+lista->size)%lista->size;
 	} else {
@@ -189,21 +189,21 @@ int prev(lista_t lista){
 	return lista->actual;
 }
 
-process_t actual(lista_t lista){
+process_t actual(lista_t *lista){
 	return lista->procesos[lista->actual];
 }
 
-int actualN(lista_t lista){
+int actualN(lista_t *lista){
 	return lista->actual;
 }
 
 /*
 Funcion que devuelve si el elemento actual es el elemento final
 */
-int isLast(lista_t lista){
+int isLast(lista_t *lista){
 	return lista->actual == lista->size;
 }
 
-void rewindList(lista_t lista){
+void rewindList(lista_t *lista){
 	lista->actual = 0;
 }
