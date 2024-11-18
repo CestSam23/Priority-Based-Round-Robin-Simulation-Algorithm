@@ -36,10 +36,6 @@ int main(){
     semctl(sem_id, 0, SETVAL, 1);      // Inicializamos semáforo para acceso exclusivo a memoria compartida
     semctl(empty_count, 0, SETVAL, 0); // Inicializamos el contador de procesos en memoria como vacío
 
-    // Configuración de la memoria compartida (inicializar puntero)
-    shared_data->actual = 0;
-    shared_data->size = 0;
-
     signal(SIGTERM, manejar_sigterm);
     if (fork() == 0) {
         LargoPlazo(archivo_entrada);
@@ -75,17 +71,13 @@ void LargoPlazo(char *name){
             
             if (fread(readed, sizeof(process_t), n, fPtr) == n) {
                 // Procesos leídos correctamente
-                printf("Procesos leídos: %d\n", n);  // Depuración: cuántos procesos leímos
                 down(sem_id);  // Sincronizar acceso a la memoria
-                for (int i = 0; i < n; i++) {
-                    shared_data->procesos[shared_data->size++] = readed[i];  // Escribir en la memoria compartida
-                }
+                addProcesses(shared_data,readed,n);
                 up(empty_count);  // Señalar que hay nuevos procesos disponibles
                 up(sem_id);       // Liberar acceso a la memoria compartida
-                printf("Procesos almacenados en la memoria compartida.\n");  // Depuración
             } else {
                 if (feof(fPtr)) {
-                    printf("Fin de archivo alcanzado.\n");  // Depuración: fin de archivo
+                    printf("A la espera de Lotes: \n");  // Depuración: fin de archivo
                     break;
                 } else if (ferror(fPtr)) {
                     perror("Error al leer el archivo\n");
@@ -110,18 +102,20 @@ void CortoPlazo(){
         down(sem_id);  // Sincronizar acceso a la memoria compartida
         
         // Leer los datos de la memoria compartida y almacenarlos en listaDeProcesos
-        printf("Procesos disponibles para leer: %d\n", shared_data->size);  // Depuración: cuántos procesos hay
-        for (int i = 0; i < shared_data->size; i++) {
+        printf("Procesos disponibles para leer: %d\n", size(shared_data));  // Depuración: cuántos procesos hay
+        for (int i = 0; i < size(shared_data); i++) {
             printf("Proceso leido: %s\n", shared_data->procesos[i].name);  // Depuración: muestra los procesos leídos
-            listaDeProcesos.procesos[i] = shared_data->procesos[i];
+            addProcess(&listaDeProcesos,actual(shared_data));
+            next(shared_data);
         }
-        listaDeProcesos.size = shared_data->size;
-        shared_data->size = 0;  // Limpiar memoria compartida después de leer los procesos
+        while(isEmpty(shared_data)!=1){
+            deleteProcess(shared_data);
+        }
 
         up(sem_id);  // Liberar acceso a la memoria compartida
         
         // Despachar procesos
-        if (listaDeProcesos.size > 0) {
+        if (size(&listaDeProcesos) > 0) {
             roundRobin();
             priority();
         }
@@ -133,18 +127,18 @@ void CortoPlazo(){
 void roundRobin(){
     // Iniciamos el Round Robin en la lista de procesos
     rewindList();
-    int iterations = listaDeProcesos.size;
+    int iterations = size(&listaDeProcesos);
     for (int i = 0; i < iterations; i++) {
-        printf("---------------------------Proceso %s ----------------------\n", listaDeProcesos.procesos[i].name);
+        printf("---------------------------Proceso %s ----------------------\n", actual(&listaDeProcesos).name);
         // Aquí es donde manejas el tiempo de CPU
-        aumentarEspera(QUANTUM);
-        aumentarTerminacion(QUANTUM);
-        if (restarEjecucion(QUANTUM) == -1) {
-            printf("El proceso %s ha sido despachado por completo con RoundRobin\n", listaDeProcesos.procesos[i].name);
-            sendToAnalytics(deleteProcess());
+        aumentarEspera(&listaDeProcesos, QUANTUM);
+        aumentarTerminacion(&listaDeProcesos, QUANTUM);
+        if (restarEjecucion(&listaDeProcesos, QUANTUM) == -1) {
+            printf("El proceso %s ha sido despachado por completo con RoundRobin\n", actual(&listaDeProcesos).name);
+            sendToAnalytics(deleteProcess(&listaDeProcesos));
             printf("*******************************************************\n\n");
         } else {
-            printf("\t\tDespachando proceso: %s\n", listaDeProcesos.procesos[i].name);
+            printf("\t\tDespachando proceso: %s\n", actual(&listaDeProcesos).name);
             printf("*******************************************************\n\n");
         }
     }
@@ -152,18 +146,18 @@ void roundRobin(){
 
 void priority(){
     // Despachar por prioridades
-    int iterations = listaDeProcesos.size;
+    int iterations = size(&listaDeProcesos);
     for (int i = 0; i < iterations; i++) {
-        printf("---------------------------Proceso %s ----------------------\n", listaDeProcesos.procesos[i].name);
-        printf("\t\tDespachando proceso:%s\n", listaDeProcesos.procesos[i].name);
+        printf("---------------------------Proceso %s ----------------------\n", actual(&listaDeProcesos).name);
+        printf("\t\tDespachando proceso:%s\n", actual(&listaDeProcesos).name);
 
-        int remain = listaDeProcesos.procesos[i].cpuBurst;
-        aumentarEspera(remain);
-        aumentarTerminacion(remain);
-        restarEjecucion(remain);
+        int remain = actual(&listaDeProcesos).cpuBurst;
+        aumentarEspera(&listaDeProcesos, remain);
+        aumentarTerminacion(&listaDeProcesos, remain);
+        restarEjecucion(&listaDeProcesos, remain);
 
-        printf("El proceso %s ha sido despachado por completo con prioridades\n", listaDeProcesos.procesos[i].name);
-        sendToAnalytics(deleteProcess());
+        printf("El proceso %s ha sido despachado por completo con prioridades\n", actual(&listaDeProcesos).name);
+        sendToAnalytics(deleteProcess(&listaDeProcesos));
     }
 }
 
