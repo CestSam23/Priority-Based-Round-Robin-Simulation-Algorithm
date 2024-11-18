@@ -12,10 +12,6 @@ void up(int sem_id);
 void LargoPlazo(char *name);
 
 /* MODULO CORTO PLAZO */
-lista_t listaDeProcesos;
-void roundRobin();
-void priority();
-void sendToAnalytics(process_t process);
 void CortoPlazo();
 
 /*  MODULO ESTADISTICA*/
@@ -102,6 +98,38 @@ void LargoPlazo(char *name){
 }
 
 /* CORTO PLAZO */
+
+lista_t listaDeProcesos;
+void roundRobin();
+void priority();
+void sendToAnalytics(process_t process);
+
+void CortoPlazo(){
+    while (1) {
+        down(empty_count);  // Esperar hasta que haya procesos disponibles
+        down(sem_id);  // Sincronizar acceso a la memoria compartida
+        
+        // Leer los datos de la memoria compartida y almacenarlos en listaDeProcesos
+        printf("Procesos disponibles para leer: %d\n", shared_data->size);  // Depuración: cuántos procesos hay
+        for (int i = 0; i < shared_data->size; i++) {
+            printf("Proceso leido: %s\n", shared_data->procesos[i].name);  // Depuración: muestra los procesos leídos
+            listaDeProcesos.procesos[i] = shared_data->procesos[i];
+        }
+        listaDeProcesos.size = shared_data->size;
+        shared_data->size = 0;  // Limpiar memoria compartida después de leer los procesos
+
+        up(sem_id);  // Liberar acceso a la memoria compartida
+        
+        // Despachar procesos
+        if (listaDeProcesos.size > 0) {
+            roundRobin();
+            priority();
+        }
+        printf("\tLOTE DESPACHADO\n");
+    }
+}
+
+
 void roundRobin(){
     // Iniciamos el Round Robin en la lista de procesos
     rewindList();
@@ -150,30 +178,7 @@ void sendToAnalytics(process_t process){
     estadisticas();
 }
 
-void CortoPlazo(){
-    while (1) {
-        down(empty_count);  // Esperar hasta que haya procesos disponibles
-        down(sem_id);  // Sincronizar acceso a la memoria compartida
-        
-        // Leer los datos de la memoria compartida y almacenarlos en listaDeProcesos
-        printf("Procesos disponibles para leer: %d\n", shared_data->size);  // Depuración: cuántos procesos hay
-        for (int i = 0; i < shared_data->size; i++) {
-            printf("Proceso leido: %s\n", shared_data->procesos[i].name);  // Depuración: muestra los procesos leídos
-            listaDeProcesos.procesos[i] = shared_data->procesos[i];
-        }
-        listaDeProcesos.size = shared_data->size;
-        shared_data->size = 0;  // Limpiar memoria compartida después de leer los procesos
 
-        up(sem_id);  // Liberar acceso a la memoria compartida
-        
-        // Despachar procesos
-        if (listaDeProcesos.size > 0) {
-            roundRobin();
-            priority();
-        }
-        printf("\tLOTE DESPACHADO\n");
-    }
-}
 
 /* ESTADISTICA */
 void estadisticas() {
