@@ -22,16 +22,19 @@
 
 //----
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 typedef struct Process{
     pid_t id; // identifidor del proceso 
     int cpuBurst; // tiempo de ejecucion
     int tCompletition; // tiempo de terminacion 
     int tWaiting; //tiempo espera
     int priority; 
-    char name[5];
+    char name[50];
 } process_t;
 
 #include "lista.h"
 
 #endif 
-
