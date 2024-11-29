@@ -1,6 +1,5 @@
 #include "mylib.h"
 
-int client_socket;
 #define MAX_PROCESSES 1000
 #define QUANTUM 5
 #define PORT 8080 // Puerto del servidor
@@ -8,6 +7,7 @@ int client_socket;
 /* SEMÁFOROS Y MEMORIA COMPARTIDA */
 int shm_id, sem_id, empty_count; 
 lista_t *shared_data; // Identificadores de Memoria Compartida
+
 void down(int sem_id);
 void up(int sem_id);
 
@@ -17,29 +17,46 @@ void sendToAnalytics(process_t process);
 void CortoPlazo();
 void roundRobin();
 void priority();
-void sendToClient(int client_socket, process_t process);
+void sendToClient(int client_socket, process_t response);
 void manejar_cliente(int client_socket);
 
 int countProcessExecuted = 0, countProcessAnnihilated = 0, totalWaitTime = 0; // variables para contadores de procesos
-FILE *ProcessDispatcherStatistics; // archivo generado para estadisticas
+FILE *ProcessDispatcherStatistics; 
 void estadisticas();
 
 /* FUNCIONES DE FINALIZACIÓN */ 
 void manejar_sigterm(int sig);
 void freeResources(int semid, int shmid, lista_t *shm_ptr);
+void manejar_sigchld(int sig);
+
+int client_socket;
 
 int main(){
     // Inicialización de la memoria compartida y semáforos
     shm_id = shmget(IPC_PRIVATE, sizeof(lista_t), IPC_CREAT | 0666);
+    if (shm_id == -1) {
+        perror("Error al obtener memoria compartida");
+        exit(1);
+    }
+
     shared_data = (lista_t *)shmat(shm_id, NULL, 0);
+    if (shared_data == (void *)-1) {
+        perror("Error al asignar memoria compartida");
+        exit(1);
+    }
 
     sem_id = semget(IPC_PRIVATE, 1, IPC_CREAT | 0666);   // Semáforo para acceso exclusivo a la memoria compartida
     empty_count = semget(IPC_PRIVATE, 1, IPC_CREAT | 0666); // Semáforo para contar si hay procesos disponibles
+    if (sem_id == -1 || empty_count == -1) {
+        perror("Error al crear semáforos");
+        exit(1);
+    }
 
     semctl(sem_id, 0, SETVAL, 1);      // Inicializamos semáforo para acceso exclusivo a memoria compartida
     semctl(empty_count, 0, SETVAL, 0); // Inicializamos el contador de procesos en memoria como vacío
 
     signal(SIGTERM, manejar_sigterm);
+    signal(SIGCHLD, manejar_sigchld);  // Manejar procesos hijos terminados
 
     int server_fd;
     struct sockaddr_in server_addr, client_addr;
@@ -59,98 +76,119 @@ int main(){
     // Enlazar socket
     if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         perror("Error al enlazar el socket");
+        close(server_fd);
         exit(1);
     }
 
     // Escuchar conexiones
     if (listen(server_fd, 5) < 0) {
         perror("Error al escuchar conexiones");
+        close(server_fd);
         exit(1);
     }
 
     printf("Servidor esperando conexiones en el puerto %d...\n", PORT);
 
-   while (1) {
-        // Aceptar conexiones de los clientes
+    while (1) {
         client_socket = accept(server_fd, (struct sockaddr*)&client_addr, &addr_len);
         if (client_socket < 0) {
             perror("Error al aceptar conexión");
+            continue;
         }
-        printf("Conexión aceptada desde %s\n", inet_ntoa(client_addr.sin_addr));
-        
-        manejar_cliente(client_socket);
-    }
 
+        printf("Conexión aceptada desde %s\n", inet_ntoa(client_addr.sin_addr));
+
+        pid_t pid = fork();
+        if (pid < 0) {
+            perror("Error al crear proceso hijo");
+            close(client_socket);
+        } else if (pid == 0) {
+            manejar_cliente(client_socket);
+            close(client_socket);
+            exit(0);
+        } else {
+            close(client_socket);
+        }
+    }
     close(server_fd);
     return 0;
 }
 
-
 void manejar_cliente(int client_socket) {
-    process_t process;
-    ssize_t bytes_received;
+    process_t proceso, response;
 
-    while ((bytes_received = recv(client_socket, &process, sizeof(process_t), 0)) > 0) {
-        printf("Proceso recibido: ID=%d, Nombre=%s, Tiempo de CPU=%d\n", process.id, process.name, process.cpuBurst);
+    printf("Servidor listo para recibir procesos del cliente.\n");
 
-        // Despachar el proceso
-        up(empty_count); 
-        down(sem_id);  
-        addProcess(shared_data, process);
-        up(sem_id);  
-        // Llamada al algoritmo de corto plazo (despacho de procesos)
+    while (1) {
+        // Recibir el proceso desde el cliente
+        ssize_t bytes_received = recv(client_socket, &proceso, sizeof(process_t), 0);
+        
+        if (bytes_received == 0) {
+            // Cliente cerró la conexión
+            printf("El cliente cerró la conexión.\n");
+            break;
+        } else if (bytes_received < 0) {
+            perror("Error al recibir el proceso");
+            break;
+        }
+
+        printf("Proceso recibido: ID=%d, Nombre=%s, CPU Burst=%d\n", 
+                proceso.id, proceso.name, proceso.cpuBurst);
+
+        // Sincronizar acceso a la memoria compartida
+        down(sem_id);
+        addProcess(shared_data, proceso); // Agregar proceso a la lista compartida
+        up(sem_id);
+
+        // Despachar procesos usando el planificador de corto plazo
         CortoPlazo();
+
+        // Crear y enviar respuesta al cliente
+        response.id = proceso.id;
+        response.tWaiting = proceso.tWaiting;
+        response.cpuBurst = proceso.cpuBurst;
+        
+        sendToClient(client_socket, response);
     }
 
-    if (bytes_received == 0) {
-        printf("Conexión cerrada por el cliente.\n");
-    } else if (bytes_received < 0) {
-        perror("Error al recibir el proceso");
-    }
-
-    // Cerrar socket del cliente después de recibir todos los procesos
-    close(client_socket);
+    close(client_socket); // Cerrar el socket del cliente
+    printf("Conexión con cliente terminada.\n");
 }
 
-/*void manejar_cliente(int client_socket) {
-    process_t process;
-    ssize_t bytes_received;
 
-    // Recibir proceso del cliente
-    bytes_received = recv(client_socket, &process, sizeof(process_t), 0);
-    if (bytes_received <= 0) {
-        printf("Error al recibir el proceso o conexión cerrada.\n");
-    }
+void manejar_sigchld(int sig) {
+    while (waitpid(-1, NULL, WNOHANG) > 0);
+}
 
-    // Despachar el proceso
-    up(empty_count); 
-    down(sem_id);  
-    addProcess(shared_data, process);
-    up(sem_id);  
-    // Llamada al algoritmo de corto plazo (despacho de procesos)
-    CortoPlazo();
+void down(int sem_id) {
+    struct sembuf op = {0, -1, 0};
+    semop(sem_id, &op, 1);
+}
 
-    // Cerrar socket del cliente después de recibir todos los procesos
-    close(client_socket);
-}*/
+void up(int sem_id) {
+    struct sembuf op = {0, 1, 0};
+    semop(sem_id, &op, 1);
+}
 
-void sendToClient(int client_socket, process_t process) {
-    printf("\nEnviando proceso al cliente...");
+void sendToClient(int client_socket, process_t response) {
+    printf("\nEnviando respuesta al cliente...");
 
-    ssize_t bytes_sent = send(client_socket, &process, sizeof(process_t), 0);
+    ssize_t bytes_sent = send(client_socket, &response, sizeof(process_t), 0);
     if (bytes_sent < 0) {
-        perror("Error al enviar el proceso al cliente");
+        perror("Error al enviar la respuesta al cliente");
     } else {
-        printf("\nProceso enviado al cliente");
+        printf("\nRespuesta enviada al cliente");
     }
 }
 
 /* CORTO PLAZO */
 void CortoPlazo() {
-    while (1) {
-        down(empty_count);  // Esperar hasta que haya procesos disponibles
-        down(sem_id);  // Sincronizar acceso a la memoria compartida
-       
+        while (!isEmpty(shared_data)) {
+        down(sem_id);
+        if (isEmpty(shared_data)) {
+            up(sem_id);
+            break;
+        }
         // Leer los datos de la memoria compartida y almacenarlos en listaDeProcesos
         printf("\nProcesos disponibles para leer: %d\n", size(shared_data));  // Depuración: cuántos procesos hay
         for (int i = 0; i < size(shared_data); i++) {
@@ -158,19 +196,19 @@ void CortoPlazo() {
             addProcess(&listaDeProcesos, actual(shared_data));
             next(shared_data);
         }
+        // Despachar procesos según la política
+        process_t proceso_actual = deleteProcess(shared_data);
+        up(sem_id);
 
-        while (isEmpty(shared_data) != 1) {
-            deleteProcess(shared_data);
-        }
+        printf("Ejecutando proceso %s...\n", proceso_actual.name);
+        roundRobin();
+        priority();
+        sleep(proceso_actual.cpuBurst); // Simula ejecución
+        proceso_actual.tCompletition = time(NULL);
+        printf("Proceso %s terminado.\n", proceso_actual.name);
 
-        up(sem_id);  // Liberar acceso a la memoria compartida
-        
-        // Despachar procesos
-        if (size(&listaDeProcesos) > 0) {
-            roundRobin();
-            priority();
-        }
-        printf("\nPROCESO DESPACHADO");
+        // Enviar datos a estadísticas
+        sendToAnalytics(proceso_actual);
     }
 }
 
@@ -190,20 +228,34 @@ void roundRobin(){
             next(&listaDeProcesos);
         }
     }
+
+    process_t response;
+    response.id = actual(&listaDeProcesos).id;
+    response.tWaiting= actual(&listaDeProcesos).tWaiting;
+    response.cpuBurst = actual(&listaDeProcesos).cpuBurst;
+    sendToClient(client_socket, response);
 }
 
-void priority(){
-    // Despachar por prioridades
+void priority() {
     int iterations = size(&listaDeProcesos);
     for (int i = 0; i < iterations; i++) {
-
         int remain = actual(&listaDeProcesos).cpuBurst;
         aumentarEspera(&listaDeProcesos, remain);
         aumentarTerminacion(&listaDeProcesos, remain);
         restarEjecucion(&listaDeProcesos, remain);
 
         printf("El proceso %s ha sido despachado por completo con prioridades\n", actual(&listaDeProcesos).name);
-        sendToClient(client_socket, actual(&listaDeProcesos));
+
+        // Crear la respuesta del servidor
+        process_t response;
+        response.id = actual(&listaDeProcesos).id;
+        response.tWaiting = actual(&listaDeProcesos).tWaiting;
+        response.cpuBurst = actual(&listaDeProcesos).cpuBurst;
+
+        // Enviar la respuesta al cliente
+        sendToClient(client_socket, response);
+
+        // Enviar los datos a Analytics y eliminar el proceso de la lista
         sendToAnalytics(deleteProcess(&listaDeProcesos));
     }
 }
@@ -234,22 +286,11 @@ void sendToAnalytics(process_t process){
         countProcessAnnihilated++; 
     }
     totalWaitTime += process.tWaiting;
-   //estadisticas();
-}
-
-void down(int sem_id) {
-    struct sembuf op = {0, -1, 0};
-    semop(sem_id, &op, 1);
-}
-
-void up(int sem_id) {
-    struct sembuf op = {0, 1, 0};
-    semop(sem_id, &op, 1);
 }
 
 /* FUNCIONES DE FINALIZACIÓN */
 void manejar_sigterm(int sig) {
-    printf("\nRecibiendo señal SIGTERM, generando estadísticas...\n");
+    printf("Recibiendo SIGTERM. Generando estadísticas...\n");
     estadisticas();
     freeResources(sem_id, shm_id, shared_data);
     exit(0);

@@ -1,23 +1,16 @@
 #include "mylib.h"
 
 #define PORT 8080 // Puerto del servidor
-#define IP "127.0.0.1"
-
-typedef struct {
-    int id;             // Identificador del proceso
-    int waitTime;       // Tiempo de espera
-    int execTime;       // Tiempo de ejecución
-} server_response_t;
+#define IP "127.0.0.1" //IP local
 
 void enviarProceso(int socket_fd, process_t *process);
 int solicitarProceso(process_t *process);
-void recibirRespuesta(int socket_fd, server_response_t *response);
+void recibirRespuesta(int socket_fd, process_t *response);
 
 int main() {
     int socket_fd;
     struct sockaddr_in server_addr;
-    process_t process;
-    server_response_t response;
+    process_t process, response;
     char continuar = 'y';
 
     // Crear el socket
@@ -53,8 +46,8 @@ int main() {
 
             // Mostrar la respuesta del servidor
             printf("\n-----Respuesta del servidor: Proceso %d-----\n", response.id);
-            printf("Tiempo de espera: %d ms\n", response.waitTime);
-            printf("Tiempo de ejecución: %d ms\n", response.execTime);
+            printf("Tiempo de espera: %d ms\n", response.tCompletition);
+            printf("Tiempo de ejecución: %d ms\n", response.tWaiting);
         }
 
         // Preguntar si se desea continuar
@@ -85,27 +78,26 @@ int solicitarProceso(process_t *process) {
 // Función para enviar un proceso al servidor
 void enviarProceso(int socket_fd, process_t *process) {
     // Enviar los datos del proceso al servidor
-    ///send(socket_fd, process, sizeof(process_t), 0); -- 
-
-     // Enviar los datos del proceso al servidor
-    ssize_t bytes_sent = send(socket_fd, process, sizeof(process_t), 0);
-    if (bytes_sent < 0) {
-        perror("Error al enviar el proceso al servidor");
-    } else {
-        printf("Proceso enviado: ID=%d, Nombre=%s, Tiempo de CPU=%d\n", process->id, process->name, process->cpuBurst);
+    ssize_t total_sent = 0, bytes_sent;
+    while (total_sent < sizeof(process_t)) {
+        bytes_sent = send(socket_fd, ((char*)process) + total_sent, sizeof(process_t) - total_sent, 0);
+        if (bytes_sent < 0) {
+            perror("Error al enviar");
+            break;
+        }
+        total_sent += bytes_sent;
     }
 }
 
 // Función para recibir la respuesta del servidor
-void recibirRespuesta(int socket_fd, server_response_t *response) {
-    // Recibir los datos de la respuesta del servidor
-    //recv(socket_fd, response, sizeof(server_response_t), 0); -- 
-
-    // Recibir los datos de la respuesta del servidor
-    ssize_t bytes_received = recv(socket_fd, response, sizeof(server_response_t), 0);
-    if (bytes_received < 0) {
-        perror("Error al recibir la respuesta del servidor");
-    } else {
-        printf("Respuesta recibida: ID=%d, Tiempo de espera=%d, Tiempo de ejecución=%d\n", response->id, response->waitTime, response->execTime);
+void recibirRespuesta(int socket_fd, process_t *response) {
+    ssize_t total_received = 0, bytes_received;
+    while (total_received < sizeof(process_t)) {
+        bytes_received = recv(socket_fd, ((char*)response) + total_received, sizeof(process_t) - total_received, 0);
+        if (bytes_received <= 0) {
+            perror("Error al recibir");
+            break;
+        }
+        total_received += bytes_received;
     }
 }

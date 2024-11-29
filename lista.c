@@ -9,7 +9,7 @@ Añade la estructura de un proceso individualmente,
 actualiza los punteros, retorna 1 si se agregó correctamente, 
 0 en caso contrario
 */
-int addProcess(lista_t *lista, struct Process process){
+/*int addProcess(lista_t *lista, struct Process process){
 	if(lista->size>=MAX){
 		return 0; 
 	}
@@ -17,8 +17,8 @@ int addProcess(lista_t *lista, struct Process process){
 	lista->size++;
 	next(lista);
 	return 0;
-}
-
+}*/
+ 
 /*
 Añade procesos de un arreglo de procesos.
 Devuelve -1 si ocurrió un error
@@ -39,6 +39,29 @@ int addProcesses(lista_t *lista, struct Process process[], int n){
 	}
 	
 	return sizeOfArray;
+}
+
+/*int addProcesses(lista_t *lista, struct Process process[], int n) {
+    if (lista->size + n > MAX) {
+        return -1; // Error: no hay suficiente espacio en la lista
+    }
+
+    for (int i = 0; i < n; i++) {
+        lista->procesos[lista->size] = process[i];
+        lista->size++;
+    }
+
+    return n; // Retorna el número de procesos agregados exitosamente
+} */
+
+void addProcess(lista_t *lista, process_t process) {
+    // Aquí se agrega el proceso recibido al final de la lista
+    if (lista->size >= MAX) {
+        printf("Error: Lista de procesos llena.\n");
+        return;
+    }
+    lista->procesos[lista->size] = process;
+    lista->size++;
 }
 
 /*
