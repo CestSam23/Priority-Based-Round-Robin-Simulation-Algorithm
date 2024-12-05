@@ -62,7 +62,7 @@ process_t deleteProcess(lista_t *lista){
 		lista->procesos[i] = lista->procesos[i+1];
 	}
 	lista->size--;
-	if(lista->actual==lista->size-1){
+	if(lista->actual==lista->size){
 		prev(lista);
 	};
 	//Devolvemos la estructura original
